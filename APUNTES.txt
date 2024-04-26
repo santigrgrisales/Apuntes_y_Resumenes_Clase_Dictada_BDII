@@ -1,0 +1,475 @@
+SET SERVEROUTPUT ON;
+
+DECLARE
+ VAR_TEXTO VARCHAR(50);
+ 
+BEGIN
+ VAR_TEXTO:='HELLO MUNDO';
+ DBMS_OUTPUT.PUT_LINE(VAR_TEXTO);
+ 
+END; 
+
+//
+SET SERVEROUTPUT ON;
+
+DECLARE
+    VAR_NOMBRE VARCHAR2(50);
+BEGIN
+    VAR_NOMBRE := '&INGRESE_SU_FXCKING_NOMBRE'; 
+    DBMS_OUTPUT.PUT_LINE('HOLA ' || VAR_NOMBRE);
+END;
+
+//
+BLOQUE ANÓNIMO.
+SET SERVEROUTPUT ON;
+
+DECLARE
+    VARIABLES;
+BEGIN
+    PROGRAMA;
+END;
+
+//
+CHAR = GUARDA 1 SÓLO CARÁCTER.
+VARCHAR(X)= GUARDA X CARÁCTERES.
+VARCHAR2(X)= GUARDA LOS USADOS DE X CARÁCTERES.
+NUMBER(X,Y)= GUARDA UN NUMERO DE X DIGITOS & Y DECIMALES.
+DATE= GUARDA LA FECHA 'YYYY-MM-DD'.
+BOOLEAN= TRUE OR FALSE.
+%ROWTYPE
+%TYPE 
+
+//SUMA..
+SET SERVEROUTPUT ON;
+
+DECLARE
+    VAR_X NUMBER(10);
+    VAR_Y NUMBER(10);
+    VAR_C NUMBER(12);
+BEGIN
+    VAR_X:= 10;
+    VAR_Y:= 20;
+    VAR_C:= VAR_X + VAR_Y;
+    DBMS_OUTPUT.PUT_LINE(VAR_C);
+END;
+
+//
+SET SERVEROUTPUT ON;
+
+DECLARE
+    VAR_FECHA_DE_NACIMIENTO DATE;
+    VAR_FECHA_ACTUAL DATE;
+    VAR_DIAS_VIDA NUMBER(10);
+BEGIN
+    VAR_FECHA_DE_NACIMIENTO:= TO_DATE('2003-07-11','YYYY-MM-DD');
+    VAR_FECHA_ACTUAL:=SYSDATE;
+    VAR_DIAS_VIDA:= VAR_FECHA_ACTUAL-VAR_FECHA_DE_NACIMIENTO;
+    DBMS_OUTPUT.PUT_LINE('DIAS DE VIDA ' || VAR_DIAS_VIDA);
+END;
+
+//
+TABLA...
+
+CREATE TABLE ejemplo (
+    id NUMBER,
+    nombre VARCHAR2(50),
+    apellido VARCHAR2(50),
+    edad NUMBER
+);
+
+
+INSERT INTO ejemplo (id, nombre, apellido, edad) VALUES (1, 'Juan', 'Pérez', 30);
+INSERT INTO ejemplo (id, nombre, apellido, edad) VALUES (2, 'María', 'González', 25);
+INSERT INTO ejemplo (id, nombre, apellido, edad) VALUES (3, 'Pedro', 'Sánchez', 35);
+
+
+COMMIT;
+
+SELECT * FROM ejemplo;
+
+//
+/CURSOR IMPLICITO*
+SET SERVEROUTPUT ON;
+
+
+BEGIN
+  FOR i IN (SELECT * FROM EJEMPLO) LOOP
+       DBMS_OUTPUT.PUT_LINE('NOMBRE: ' || i.NOMBRE || '// EDAD:' || i.EDAD);
+
+END LOOP;
+
+END;
+
+//
+/CURSOR EXPLICITO*
+SET SERVEROUTPUT ON;
+
+DECLARE
+  CURSOR CUR_01 IS 
+  SELECT * FROM EJEMPLO;
+
+BEGIN
+  FOR i IN CUR_01 LOOP
+       DBMS_OUTPUT.PUT_LINE('EPA' || I.ID);
+
+END LOOP;
+
+END;
+
+//
+SET SERVEROUTPUT ON;
+
+DECLARE
+  CURSOR CUR_01 IS 
+  SELECT * FROM EJEMPLO;
+  
+  VAR_PEDAZO_TABLA EJEMPLO%ROWTYPE;
+
+BEGIN
+  OPEN CUR_01; --ABRIR_EL_CURSOR
+  FETCH CUR_01 INTO VAR_PEDAZO_TABLA; --PRIMER_REGISTRO
+  WHILE CUR_01%FOUND LOOP
+     DBMS_OUTPUT.PUT_LINE(VAR_PEDAZO_TABLA.APELLIDO);
+     FETCH CUR_01 INTO VAR_PEDAZO_TABLA;
+
+  END LOOP;
+  
+  CLOSE CUR_01;
+
+END;
+
+//
+SET SERVEROUTPUT ON;
+
+DECLARE
+  CURSOR CUR_01 IS 
+  SELECT * FROM EJEMPLO;
+  
+  VAR_PEDAZO_TABLA EJEMPLO%ROWTYPE;
+
+BEGIN
+  OPEN CUR_01; --ABRIR_EL_CURSOR
+ LOOP 
+  FETCH CUR_01 INTO VAR_PEDAZO_TABLA; --PRIMER_REGISTRO
+  EXIT WHEN CUR_01%NOTFOUND;
+         DBMS_OUTPUT.PUT_LINE(VAR_PEDAZO_TABLA.APELLIDO);
+
+
+  END LOOP;
+  
+  CLOSE CUR_01;
+
+END;
+
+
+
+// 25-04-2024 \\
+
+//
+CREATE OR REPLACE TRIGGER
+
+TR_NOMBRETRIGERR
+
+BEFORE\AFTER -> INSERT|DELETE|UPDATE
+
+ ON NOMBRE_TABLA
+OLD|FOR EACH ROW|NEW
+    |CONDICION|
+
+  DECLARE
+  VARIABLE
+  PROGRAMA
+TR_NOMBRETRIGERR;
+
+//
+--crear tablas
+create table libros(
+	codigo number(6),
+	titulo varchar2(50),
+	autor varchar2(50),
+	editorial varchar2(50),
+	precio number(6,2)
+);
+
+create table empleados(
+ documento char(8),
+ apellido varchar2(30),
+ nombre varchar2(30),
+ seccion varchar2(20)
+);
+
+
+create table control(
+	texto varchar2(100),
+	fecha date
+);
+
+//
+--TRIGGER QUE GUARDA EN LA TABLA CONTROL EL USERNAME DE LA BD Y LA FECHA ANTES DE INSERTAR UN LIBRO
+
+CREATE OR REPLACE TRIGGER
+ TR_CONTROL_LIBROS
+BEFORE INSERT
+ ON LIBROS
+BEGIN
+ INSERT INTO CONTROL VALUES (USER,SYSDATE);
+END TR_CONTROL_LIBROS;
+
+//
+CREATE OR REPLACE TRIGGER
+ TR_CONTROL_LIBROS
+BEFORE INSERT
+ ON LIBROS FOR EACH ROW
+BEGIN
+ INSERT INTO CONTROL VALUES ('EL USUARIO: ' || USER || ' |LIBRO= ' || :NEW.TITULO,SYSDATE);
+END TR_CONTROL_LIBROS;
+
+//
+--NO PUEDE EXISTIR EL LIBRO 'MI LUCHA' DE 'ADOLF HITLER'
+
+CREATE OR REPLACE TRIGGER
+ TR_HITLER
+BEFORE INSERT OR UPDATE
+ ON LIBROS FOR EACH ROW
+BEGIN
+ IF LOWER(:NEW.TITULO)='mi lucha' OR LOWER(:NEW.AUTOR)='adolf hitler' THEN
+  RAISE_APPLICATION_ERROR(-20001,'LIBRO EXTREMADAMENTE PROHIBIDO');
+ END IF;
+END TR_HITLER;
+
+//
+/ESTADOS DE UN CURSOR*
+-DECLARADO
+-ABIERTO
+-CON DATOS
+-CERRADO
+
+//
+--solo puede existir un empleado del mismo nombre
+
+create or replace NONEDITIONABLE TRIGGER
+tr_homero
+BEFORE INSERT
+ON empleados
+FOR EACH ROW
+DECLARE
+    CURSOR cur_conteo_homeros is
+    SELECT count(*) from empleados where LOWER(nombre) = 'homero';
+    var_conteo_h number(10);
+BEGIN
+    open cur_conteo_homeros;
+
+    FETCH cur_conteo_homeros into var_conteo_h;
+    
+    IF LOWER(:NEW.nombre) = 'homero' THEN
+        IF var_conteo_h > 0 THEN
+            DBMS_OUTPUT.PUT_LINE('HAY HOMEROS');
+            RAISE_APPLICATION_ERROR(-20001, 'No se admiten homeros');
+        END IF;
+    END IF;
+END tr_homero;
+
+//
+create or replace trigger 
+tr_c_emp
+AFTER INSERT OR UPDATE OR DELETE 
+on empleados
+ 
+begin
+
+ if INSERTING THEN 
+ INSERT INTO control values (user || ' metido',SYSDATE);
+   
+ end if;
+ 
+ if updating then 
+ INSERT INTO CONTROL values(user||' actualizado',sysdate);
+end if;
+
+if deleting then
+INSERT INTO CONTROL values(user||' borrado',sysdate);
+
+end if;
+
+end tr_c_emp;
+
+
+//
+ create table empleados(
+ 	documento char(8),
+ 	apellido varchar2(30),
+ 	nombre varchar2(30),
+ 	domicilio varchar2(30),
+ 	seccion varchar2(20),
+ 	sueldo number(8,2)
+ );
+
+ insert into empleados values('22222222','Acosta','Ana','Avellaneda 11','Secretaria',1800);
+ insert into empleados values('23333333','Bustos','Betina','Bulnes 22','Gerencia',5000);
+ insert into empleados values('24444444','Caseres','Carlos','Colon 333','Contabilidad',3000);
+ insert into empleados values('32323255','Gonzales','Miguel','Cll 4','Contabilidad',8000);
+ insert into empleados values('56565555','Suarez','Tomas','Atarazana 78','Cobros',1500);
+
+create table productos(
+id_producto int not null,
+nombre_producto VARCHAR2(25),
+precio NUMBER(6,2),
+descripcion VARCHAR2(50)
+);
+
+insert into productos values(1,'Abrazadera',560,'Abrazadera de media pulgada'); 
+insert into productos values(2,'Destornillador',120,'destornillador cabeza plana');
+insert into productos values(3,'Martillo',300,'Martillo con ganzua');
+insert into productos values(4,'Llave inglesa',200,'Llave inglesa de plomeria');
+insert into productos values(5,'Pasadores RTR',935,'Tuerca exagonal de Almenada');
+insert into productos values(6,'Tornillo exagonal',90,'Tornillo exagonal de baja o tuerca');
+
+//
+SET SERVEROUTPUT ON;
+BEGIN
+ UPDATE EMPLEADOS
+ SET SUELDO=SUELDO*1.1;
+
+ IF SQL%FOUND THEN
+    DBMS_OUTPUT.PUT_LINE('TOTAL SUBIDAS DE SUELDO: ' || SQL%ROWCOUNT);
+    END IF;
+END;
+
+//
+/CURSOR EXPLICITO PARA VER LA LISTA DE LOS DOCUMENTOS DE LOS EMPLEADOS*
+SET SERVEROUTPUT ON;
+
+DECLARE 
+  CURSOR CUR_E IS
+  SELECT * FROM EMPLEADOS;
+BEGIN
+ FOR i IN CUR_E LOOP
+    DBMS_OUTPUT.PUT_LINE(i.DOCUMENTO);
+    END LOOP;
+END;   
+
+//
+SET SERVEROUTPUT ON;
+
+DECLARE 
+  CURSOR CUR_E (ID_PRO PRODUCTOS.ID_PRODUCTO%TYPE) IS
+  SELECT * FROM PRODUCTOS WHERE ID_PRODUCTO=ID_PRO;
+  VAR_F_PRO PRODUCTOS%ROWTYPE;
+BEGIN
+ OPEN CUR_E(3);
+ FETCH CUR_E INTO VAR_F_PRO;
+    DBMS_OUTPUT.PUT_LINE(VAR_F_PRO.NOMBRE_PRODUCTO);
+    CLOSE CUR_E;
+END; 
+
+
+//
+SET SERVEROUTPUT ON;
+BEGIN
+ UPDATE EMPLEADOS
+ SET SUELDO=2000 WHERE DOCUMENTO ='22222222';
+
+ IF SQL%NOTFOUND THEN
+    DBMS_OUTPUT.PUT_LINE('EMPLEADO NO EXISTE ');
+    END IF;
+END;
+
+//
+--MOSTRAR DESCRIPCION DE LOS PRODUCTOS CUYO NOMBRE CONTENGA LA PALABRA MARTILLO
+SET SERVEROUTPUT ON;
+
+DECLARE 
+  CURSOR CUR_E IS
+SELECT DESCRIPCION FROM PRODUCTOS WHERE LOWER(NOMBRE_PRODUCTO) like '%martillo%';
+BEGIN
+FOR i IN CUR_E LOOP
+    DBMS_OUTPUT.PUT_LINE(i.Descripcion);
+    END LOOP;
+    END;
+
+//
+/--2. Crear una tabla llamada empleado que tenga las siguientes reglas:
+--El salario no puede superar los 5 millones de pesos.
+--●	No se puede eliminar un gerente.
+--●	Si al momento de insertar un empleado el salario es null reemplazar por 0.
+--●	No se puede actualizar el número de documento.*
+
+
+create or replace trigger tr_ej01
+before insert on empleados for each row
+begin
+ if :new.salario>500000 then
+   RAISE_APPLICATION_ERROR(-20001,'no puede superar ese salario');
+ end if;
+end tr_ej01;
+
+create or replace trigger tr_ej02
+before delete on empleados for each row
+begin
+ if LOWER(:old.cargo) = 'gerente' then
+    RAISE_APPLICATION_ERROR(-20001,'no puede eliminar al gerente');
+  end if;
+ end tr_ej02; 
+
+
+create or replace trigger tr_ej03
+before update on empleados for each row
+begin
+ if :new.documento != :old.documento then
+     RAISE_APPLICATION_ERROR(-20001,'no tienes permitido actualizar esa informacion sapa');
+end if;
+end tr_ej03;
+
+
+create or replace trigger tr_ej04
+before insert on empleados for each row
+
+begin
+ if :new.salario is null then
+  :new.salario :=0;
+ end if;
+end tr_ej04;
+
+//
+--utilice un cursor explícito para mostrar los IDs de los pedidos
+--realizados por un cliente específico cuyo ID de cliente sea 1. Puedes mostrar el ID del pedido y la fecha del pedido.
+
+SET SERVEROUTPUT ON;
+declare
+cursor cur_ej01 is
+select id_pedido,fecha_pedido from pedidos where id_cliente=1;
+begin
+for i in cur_ej01 loop
+DBMS_OUTPUT.PUT_LINE('ID: ' || i.ID_PEDIDO ||'  FECHA: ' || i.FECHA_PEDIDO);
+ end loop;
+end; 
+
+//
+--SALARIO PROMEDIO DE TODOS LOS EMPLEADOS
+
+SET SERVEROUTPUT ON;
+declare
+var_01 number;
+BEGIN
+ SELECT AVG(SALARIO) into var_01  FROM EMPLEADOS;
+     DBMS_OUTPUT.PUT_LINE('promedio de salarios de los empleados: ' || var_01);
+
+  
+END;
+
+//
+--utilice un cursor implícito para mostrar el nombre de cada empleado junto con el nombre del departamento al que pertenece. Puedes asumir que cada empleado está asignado a un departamento.
+
+SET SERVEROUTPUT ON;
+
+DECLARE
+  var_2 VARCHAR2(200);
+BEGIN
+  FOR i IN (SELECT e.nombre, d.nombre_departamento
+                  FROM empleados e
+                  INNER JOIN departamentos d ON e.id_departamento = d.id_departamento) LOOP
+    var_2 := i.nombre || ' - ' || i.nombre_departamento;
+    DBMS_OUTPUT.PUT_LINE( var_2);
+  END LOOP;
+END;
+
