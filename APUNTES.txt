@@ -1,3 +1,4 @@
+......BLOQUES ANÓNIMO......
 SET SERVEROUTPUT ON;
 
 DECLARE
@@ -629,8 +630,26 @@ end;
 
 select producto_mas_caro as nombre_del_producto_mas_caro from dual;
 
+
 //
 -- Crear una función que reciba un precio como parámetro y devuelva todos los productos que tienen un precio igual o inferior a ese valor.
+
+/CON BLOQUE ANÓNIMO*
+SET SERVEROUTPUT ON;
+
+ 
+BEGIN
+    FOR I IN (SELECT id_producto, nombre_producto, precio, descripcion
+                     FROM productos
+                     WHERE precio <= 110)
+    LOOP
+        
+        DBMS_OUTPUT.PUT_LINE('ID: ' || i.id_producto || ', Nombre: ' || i.nombre_producto || ', Precio: ' || i.precio || ', Descripción: ' || i.descripcion);
+    END LOOP;
+END;
+
+//
+/LA UNICA MANERA DE DESAROLLAR EL EJERCICIO CON UNA FUCIÓN*
 
 CREATE OR REPLACE FUNCTION productos_por_precio(precio_in number)
 Return SYS_REFCURSOR
@@ -662,5 +681,115 @@ BEGIN
     CLOSE cur_2;
 END;
 
-//
 
+//
+--   Escribir una función que devuelva el nombre completo (apellido y nombre) de todos los empleados.
+
+CREATE OR REPLACE FUNCTION
+FTC_NOMBRE_COMPLETO
+RETURN SYS_REFCURSOR
+IS
+CUR_1 SYS_REFCURSOR;
+BEGIN
+OPEN CUR_1 FOR
+ SELECT NOMBRE,APELLIDO FROM EMPLEADOS;
+RETURN CUR_1;
+END;
+
+SET SERVEROUTPUT ON;
+DECLARE
+CUR_2 SYS_REFCURSOR;
+NAME EMPLEADOS.NOMBRE%TYPE;
+LASTNAME EMPLEADOS.APELLIDO%TYPE;
+BEGIN
+CUR_2 := FTC_NOMBRE_COMPLETO();
+LOOP
+FETCH CUR_2 INTO NAME, LASTNAME;
+EXIT WHEN CUR_2%NOTFOUND;
+DBMS_OUTPUT.PUT_LINE(NAME||' '||LASTNAME);
+END LOOP;
+CLOSE CUR_2;
+END;
+
+
+//
+--Crear una función en PL/SQL que reciba como parámetro la seccion de un empleado y devuelva todos los empleados que trabajan en esta.
+
+create or replace function
+ftc_empleados_seccion(secc varchar)
+return sys_refcursor
+is
+cur_1 sys_refcursor;
+begin
+open cur_1 for
+ select documento,apellido,nombre,domicilio,sueldo,seccion from empleados where seccion =secc;
+ return cur_1;
+end;
+
+set serveroutput on;
+declare 
+cur_2 sys_refcursor;
+doc empleados.documento%type;
+a empleados.apellido%type;
+n empleados.nombre%type;
+dom empleados.domicilio%type;
+s empleados.sueldo%type;
+sec empleados.seccion%type;
+begin
+cur_2 := ftc_empleados_seccion('Contabilidad');
+loop
+fetch cur_2 into doc,a,n,dom,s,sec;
+exit when cur_2%notfound;
+dbms_output.put_line('Documento: '||doc||' |Apellidos: '||a||' |Nombre: '||n||' |Domicilio: '||dom||' |Sueldo: '||s||' |Perteneciente al departamento de '||sec);
+end loop;
+close cur_2;
+end;
+
+//
+--Crear una función en PL/SQL que reciba como parámetro el apellido de un empleado y devuelva su información completa.
+
+Create Or Replace Function
+Buscar_Apellido(Param Varchar)
+Return Sys_Refcursor
+Is 
+Txt Sys_Refcursor;
+Begin
+open txt for
+Select Documento,Apellido,Nombre,Domicilio,Seccion,Sueldo From Empleados Where Apellido=Param;
+Return Txt;
+End;
+
+set serveroutput on;
+declare
+q2 sys_refcursor;
+dc empleados.Documento%type;
+a empleados.Apellido%type;
+n empleados.Nombre%type;
+dm empleados.Domicilio%type;
+sc empleados.Seccion%type;
+sl empleados.Sueldo%type;
+begin
+q2 :=Buscar_Apellido('Bustos');
+
+loop
+fetch q2 into dc,a,n, dm, sc,sl;
+exit when q2%notfound;
+dbms_output.put_line('Documento: '||dc||' |Apellido: '||a||' |Nombre: '||n||' |Domicilio: '||dm||' |Seccion: '||sc||' |Sueldo: '||sl);
+end loop;
+close q2;
+end;
+
+//
+/O TAMBIEN PODEMOS MOSTRAR LA INFORMACIÓN DE UN SELECT ASÍ....*
+Create Or Replace Function
+Buscar_Apellido(Param Varchar)
+Return Sys_Refcursor
+Is 
+Txt Sys_Refcursor;
+Begin
+open txt for
+Select Documento,Apellido,Nombre,Domicilio,Seccion,Sueldo From Empleados Where Apellido=Param;
+Return Txt;
+End;
+
+select Buscar_Apellido('Bustos') AS INFORMACION_EMPLEADO from dual;
