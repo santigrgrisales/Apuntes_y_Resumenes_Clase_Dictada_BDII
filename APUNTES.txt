@@ -793,3 +793,76 @@ Return Txt;
 End;
 
 select Buscar_Apellido('Bustos') AS INFORMACION_EMPLEADO from dual;
+
+
+//
+--Crear una función en PL/SQL que reciba como parámetro el ID de un producto y devuelva su información completa, incluyendo nombre, precio y descripción.
+CREATE OR REPLACE FUNCTION
+FTC_BUSCAR_ID(PARAM NUMBER)
+RETURN
+SYS_REFCURSOR
+IS
+Q1 SYS_REFCURSOR;
+BEGIN
+OPEN Q1 FOR
+SELECT NOMBRE_PRODUCTO, PRECIO, DESCRIPCION FROM PRODUCTOS WHERE ID_PRODUCTO=PARAM;
+RETURN Q1;
+END;
+
+SELECT FTC_BUSCAR_ID(4) FROM DUAL;
+
+
+//
+--Escribir una función que calcule el salario total pagado a todos los empleados cuyo sueldo sea mayor que un valor dado.
+
+create or replace function
+ftc_totales(param number)
+return number
+is
+var_1 number;
+begin
+select sum(sueldo) into var_1 from empleados where sueldo>param;
+return var_1;
+end;
+
+select ftc_totales(2000) from dual;
+
+
+//
+-- Implementar una función que tome el nombre de un producto como entrada y devuelva su descripción.
+create or replace function
+ftc_1(nombre varchar)
+return varchar
+is
+var_des varchar(300);
+begin
+select descripcion into var_des from productos where nombre_producto=nombre;
+return var_des;
+end;
+
+SELECT ftc_1('Abrazadera') FROM DUAL;
+
+
+//
+--Crear una función que determine si un empleado con un cierto documento existe en la tabla de empleados.
+create or replace function
+ftc_1(DOC NUMBER)
+return VARCHAR
+is
+var_des11 SYS_REFCURSOR;
+VAR_DES VARCHAR(500);
+begin
+OPEN VAR_DES11 FOR
+SELECT DOCUMENTO FROM EMPLEADOS WHERE DOCUMENTO=DOC;
+FETCH VAR_DES11 INTO VAR_DES;
+IF VAR_DES IS NULL THEN
+VAR_DES:='NO SE ENCONTRÓ EL EMPLEADO';
+ELSE
+VAR_DES:= 'SE HA ENCONTRADO EL EMPLEADO -> '||VAR_DES;
+
+END IF;
+CLOSE VAR_DES11;
+RETURN VAR_DES;
+end;
+
+SELECT ftc_1(24444444) FROM DUAL;
