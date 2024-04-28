@@ -473,7 +473,7 @@ BEGIN
   END LOOP;
 END;
 
-
+....FUNCIONES....
 //
 CREATE OR REPLACE FUNCTION
 NOMBRE_FUNCION(VAR1 X, VARN Z)
@@ -577,3 +577,90 @@ END;
 SELECT CONSULTAR_SUELDO('Ana') FROM DUAL;
 
 //
+--Escribir una función que tome el nombre de un empleado como entrada y devuelva su sueldo. (FORMA 2)
+CREATE OR REPLACE FUNCTION 
+CONSULTAR_SUELDO (NOMBRE1 VARCHAR)
+RETURN NUMBER 
+IS
+  SALARIO NUMBER;
+BEGIN
+  SELECT SUELDO INTO SALARIO FROM EMPLEADOS WHERE NOMBRE = NOMBRE1;
+  RETURN SALARIO;
+END;
+
+SELECT CONSULTAR_SUELDO('Ana') AS SUELDO FROM DUAL;
+
+//
+--Implementar una función que calcule el total de salario pagado a todos los empleados de una sección específica.
+
+
+Create or replace function
+total_salarios_secc (section varchar)
+return number
+is
+varchar_1 number;
+begin
+select sum(sueldo) into varchar_1 from empleados where seccion=section;
+return varchar_1;
+end;
+
+select total_salarios_secc ('Contabilidad') as Total_salarios_en_esta_seccion from dual;
+
+//
+--Desarrollar una función que encuentre el nombre del producto más caro en la tabla de productos.
+
+Create or replace function
+producto_mas_caro 
+return varchar
+is
+varchar_1 NUMBER:=0;
+nombre varchar(50);
+begin
+for i in (select precio from productos) loop
+if i.PRECIO > VARCHAR_1 THEN
+VARCHAR_1 := i.PRECIO;
+END IF;
+END LOOP;
+
+select nombre_producto into nombre from productos  where precio = varchar_1;
+return nombre;
+end;
+
+
+select producto_mas_caro as nombre_del_producto_mas_caro from dual;
+
+//
+-- Crear una función que reciba un precio como parámetro y devuelva todos los productos que tienen un precio igual o inferior a ese valor.
+
+CREATE OR REPLACE FUNCTION productos_por_precio(precio_in number)
+Return SYS_REFCURSOR
+IS
+    cur_1 sys_refcursor;
+BEGIN
+    OPEN cur_1 FOR
+        SELECT id_producto, nombre_producto, precio, descripcion
+        FROM productos
+        WHERE precio <= precio_in;
+    RETURN cur_1;
+END;
+
+
+SET SERVEROUTPUT ON;
+DECLARE
+    cur_2 SYS_REFCURSOR;
+    id productos.id_producto%TYPE;
+    nombre productos.nombre_producto%TYPE;
+    precio productos.precio%TYPE;
+    descripcion productos.descripcion%TYPE;
+BEGIN
+    cur_2 := productos_por_precio(175);
+    LOOP
+        FETCH cur_2 INTO id, nombre, precio, descripcion;
+        exit when cur_2%notfound;
+        DBMS_OUTPUT.PUT_LINE('ID: ' || id || ', Nombre: ' || nombre || ', Precio: ' || precio || ', Descripción: ' || descripcion);
+    END LOOP;
+    CLOSE cur_2;
+END;
+
+//
+
